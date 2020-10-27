@@ -10,7 +10,7 @@ console_handler = logging.StreamHandler()
 console_handler.setFormatter(logging.Formatter("%(levelname)-5s: %(message)s"))
 log.addHandler(console_handler)
 log.setLevel(logging.DEBUG)
-log.setLevel(logging.ERROR)
+#log.setLevel(logging.ERROR)
 
 def find_emlx(input):
     if os.path.islink(input):
@@ -54,6 +54,13 @@ def copy_emlx(emlx, out_dir):
         log.error("%s already exists", eml)
         return False
     # Parse the EMLX file
+    msg = parse_emlx(emlx)
+    parse_msg(attach_dir, msg, [])
+    msg.set_unixfrom("From emlx2eml Thu Apr 19 00:00:00 2012")
+    # TODO: generate relevant values for unixfrom
+    open(eml, "wb").write(message_as_bytes(msg))
+
+def parse_emlx(emlx):
     content = open(emlx, "rb").read()
     eol = content.find(newline)
     length = int(content[:eol])
@@ -61,10 +68,7 @@ def copy_emlx(emlx, out_dir):
     plist = content[eol+1+length:]
     # TODO: parse the content of 'plist'
     msg = message_from_bytes(body)
-    parse_msg(attach_dir, msg, [])
-    msg.set_unixfrom("From emlx2eml Thu Apr 19 00:00:00 2012")
-    # TODO: generate relevant values for unixfrom
-    open(eml, "wb").write(message_as_bytes(msg))
+    return msg
 
 def parse_msg(attach_dir, msg, depth):
     log.debug("%sPART %s %r of type %s", " "*len(depth), ".".join([str(_+1) for _ in depth]), msg, msg.get_content_type())
