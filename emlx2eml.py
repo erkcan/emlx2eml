@@ -3,6 +3,8 @@
 # Compatible with python3 and python2 (tested with at least 2.4)
 
 import sys, os, logging, struct, email, unicodedata, base64
+import mimetypes
+
 log = logging.getLogger("emlx2eml")
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(logging.Formatter("%(levelname)-5s: %(message)s"))
@@ -44,6 +46,8 @@ def copy_emlx(emlx, out_dir):
     if attach_dir == "": attach_dir = "."
     attach_dir += "/../Attachments/" + id
     # Create output file
+    if not os.path.exists(out_dir):
+        os.mkdir(out_dir)
     eml = os.path.join(out_dir,id+".eml")
     log.debug("Extract %s to %s", emlx, eml)
     if os.path.exists(eml):
@@ -71,25 +75,17 @@ def parse_msg(attach_dir, msg, depth):
 
 # When the attachment has no explicit filename, Mail.app generates a name
 # which we want to guess.
-# TODO: The following two items should be deduced from OSX configuration.
-# base_filename is probably dependent on the local language.
-# base_suffix is probably read from some global configuration of the OS.
-base_filename = u"Pièce jointe"
-base_suffix = {
-    "text/calendar":  u".ics",
-    "image/png":      u".png",
-    "image/x-png":    u"",
-    "image/gif":      u".gif",
-    "image/jpeg":     u".jpeg",
-    "message/rfc822": u".eml",
-    }
+base_filename = u"Mail Attachment"
+mimetypes.add_type('image/pjpeg', '.jpg', strict=True)
+mimetypes.add_type('image/jpg', '.jpg', strict=True)
 
 def include_attachment(attach_dir, part, depth):
     if not "X-Apple-Content-Length" in part:
         return
     file = part.get_filename()
+    mime_type = part.get_content_type()
     if file is None:
-        file = base_filename + base_suffix[part.get_content_type()]
+        file = base_filename + mimetypes.guess_extension(mime_type)
     dirpath = attach_dir + "/" + ".".join([str(_+1) for _ in depth])
     try:
         data = open(dirpath+"/"+file,"rb").read()
@@ -120,3 +116,4 @@ if __name__ == "__main__":
     log.debug("Input %s; Output %s", input, out_dir)
     for emlx in find_emlx(input):
         copy_emlx(emlx, out_dir)
+
