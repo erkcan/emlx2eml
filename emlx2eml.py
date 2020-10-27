@@ -36,15 +36,8 @@ else:
 
 def copy_emlx(emlx, out_dir):
     # Get the numeric id
-    id = os.path.basename(emlx)
-    assert(id.endswith(".emlx"))
-    id = id[:-5]
-    if id.endswith(".partial"):
-        id = id[:-8]
-    # Find where attachments may be
-    attach_dir = os.path.dirname(emlx)
-    if attach_dir == "": attach_dir = "."
-    attach_dir += "/../Attachments/" + id
+    id = get_numeric_id(emlx)
+    
     # Create output file
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)
@@ -55,19 +48,38 @@ def copy_emlx(emlx, out_dir):
         return False
     # Parse the EMLX file
     msg = parse_emlx(emlx)
-    parse_msg(attach_dir, msg, [])
     msg.set_unixfrom("From emlx2eml Thu Apr 19 00:00:00 2012")
     # TODO: generate relevant values for unixfrom
     open(eml, "wb").write(message_as_bytes(msg))
 
-def parse_emlx(emlx):
-    content = open(emlx, "rb").read()
+def get_numeric_id(filename):
+    id = os.path.basename(filename)
+    assert(id.endswith(".emlx"))
+    id = id[:-5]
+    if id.endswith(".partial"):
+        id = id[:-8]
+    return id
+
+def parse_emlx(filename):
+    # Read file
+    content = open(filename, "rb").read()
+
+    # Extract parts
     eol = content.find(newline)
     length = int(content[:eol])
     body = content[eol+1:eol+1+length]
     plist = content[eol+1+length:]
-    # TODO: parse the content of 'plist'
+    # TODO: parse the content of 'plist', e.g. using plistlib
     msg = message_from_bytes(body)
+    
+    # Find where attachments may be
+    id = get_numeric_id(filename)
+    attach_dir = os.path.dirname(filename)
+    if attach_dir == "": attach_dir = "."
+    attach_dir += "/../Attachments/" + id
+
+    # Make complete eml
+    parse_msg(attach_dir, msg, [])
     return msg
 
 def parse_msg(attach_dir, msg, depth):
