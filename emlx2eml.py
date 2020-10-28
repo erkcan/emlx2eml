@@ -104,8 +104,13 @@ def parse_msg(attach_dir, msg, depth):
 
 
 # When the attachment has no explicit filename, Mail.app generates a name
-# which we want to guess.
-base_filename = u"Mail Attachment"
+# which we want to guess. The base_filename depends on the OS language at
+# the time the mail was downloaded. The list below is not exhaustive.
+base_filenames = (
+    u"Mail Attachment", # English
+    u"Mail-Anhang",     # German
+    u"Pièce jointe",    # French
+    )
 mimetypes.add_type('image/pjpeg', '.jpg', strict=True)
 mimetypes.add_type('image/jpg', '.jpg', strict=True)
 
@@ -113,17 +118,28 @@ mimetypes.add_type('image/jpg', '.jpg', strict=True)
 def include_attachment(attach_dir, part, depth):
     if "X-Apple-Content-Length" not in part:
         return
-    file = part.get_filename()
-    mime_type = part.get_content_type()
-    if file is None:
-        file = base_filename + mimetypes.guess_extension(mime_type)
     dirpath = attach_dir + "/" + ".".join([str(_+1) for _ in depth])
-    try:
-        data = open(dirpath+"/"+file, "rb").read()
-    except FileNotFoundError:
-        log.error("%s  Attachment '%s' not found in %s",
-                  " "*len(depth), file, dirpath)
-        return
+    file = part.get_filename()
+    if file is None:
+        extension = mimetypes.guess_extension(part.get_content_type())
+        for base in base_filenames:
+            file = base + extension
+            try:
+                data = open(dirpath+"/"+file, "rb").read()
+                break
+            except FileNotFoundError:
+                continue
+        else:
+            log.error("%s  Unnamed attachment not found in %s",
+                      " "*len(depth), dirpath)
+            return
+    else:
+        try:
+            data = open(dirpath+"/"+file, "rb").read()
+        except FileNotFoundError:
+            log.error("%s  Attachment '%s' not found in %s",
+                      " "*len(depth), file, dirpath)
+            return
     log.debug("%s  Attachment '%s' found", " "*len(depth), file)
     cte = part["Content-Transfer-Encoding"]
     if cte is None:
