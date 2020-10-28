@@ -160,7 +160,7 @@ def include_attachment(attach_dir, part, depth):
             try:
                 data = open(dirpath+"/"+file, "rb").read()
                 break
-            except FileNotFoundError:
+            except: # python2 raises IOError, python3 raises FileNotFoundError
                 continue
         else:
             log.error("%s  Unnamed attachment not found in %s",
