@@ -148,8 +148,14 @@ def include_attachment(attach_dir, part, depth):
         data = base64.b64encode(data)
         data = newline.join([data[i*76:(i+1)*76]
                              for i in range(len(data)//76+1)])
+    elif cte == "quoted-printable":
+        # The only example I found was not QP-encoded
+        pass
+    elif cte == "8bit":
+        pass
     else:
         log.error("Attachment dir is %s", attach_dir)
+        log.error("  File name is %s", file)
         log.error("  CTE %r", cte)
         log.error("  CD  %r", part["Content-Disposition"])
     part.set_payload(data)
