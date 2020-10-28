@@ -105,11 +105,44 @@ def parse_msg(attach_dir, msg, depth):
 
 # When the attachment has no explicit filename, Mail.app generates a name
 # which we want to guess. The base_filename depends on the OS language at
-# the time the mail was downloaded. The list below is not exhaustive.
+# the time the mail was downloaded. The list below is extracted by parsing
+# /System/Library/PrivateFrameworks/Notes.framework/Versions/A/Resources/*.lproj/MailCore.strings
 base_filenames = (
-    u"Mail Attachment", # English
-    u"Mail-Anhang",     # German
-    u"Pièce jointe",    # French
+    u"مرفق البريد", # ar
+    u"Adjunt de Mail", # ca
+    u"Příloha pošty", # cs
+    u"Postbilag", # da
+    u"Mail-Anhang", # de
+    u"Συνημμένο Mail", # el
+    u"Mail Attachment", # en, en_AU, en_GB
+    u"Archivo adjunto al mensaje", # es
+    u"Archivo adjunto a un correo", # es_419
+    u"Sähköpostiliite", # fi
+    u"Pièce jointe", # fr, fr_CA
+    u"קובץ מצורף לדואר", # he
+    u"मेल अटैचमेंट", # hi
+    u"E-mail privitak", # hr
+    u"Mail melléklet", # hu
+    u"Lampiran Mail", # id
+    u"Allegato di posta elettronica", # it
+    u"メールの添付ファイル", # ja
+    u"Mail 첨부 파일", # ko
+    u"Lampiran Mail", # ms
+    u"Mail-bijlage", # nl
+    u"E-postvedlegg", # no
+    u"Załącznik poczty", # pl
+    u"Anexo de E-mail", # pt
+    u"Anexo de e‑mail", # pt_PT
+    u"Fișier atașat Mail", # ro
+    u"Вложенный файл Почты", # ru
+    u"Mailová príloha", # sk
+    u"Brevbilaga", # sv
+    u"ไฟล์แนบเมล", # th
+    u"Posta İlişiği", # tr
+    u"Поштове прикріплення", # uk
+    u"Tệp đính kèm của Mail", # vi
+    u"邮件附件", # yue_CN, zh_CN,
+    u"郵件附件", # zh_HK, zh_TW
     )
 mimetypes.add_type('image/pjpeg', '.jpg', strict=True)
 mimetypes.add_type('image/jpg', '.jpg', strict=True)
