@@ -196,7 +196,7 @@ def include_attachment(attach_dir, part, depth):
     cte = part["Content-Transfer-Encoding"]
     if cte is None:
         pass
-    elif cte == "base64":
+    elif cte == "base64" or cte == 'BASE64':
         data = base64.b64encode(data)
         data = newline.join([data[i*76:(i+1)*76]
                              for i in range(len(data)//76+1)])
