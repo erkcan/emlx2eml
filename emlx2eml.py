@@ -189,9 +189,13 @@ def include_attachment(attach_dir, part, depth):
         try:
             data = open(dirpath+"/"+file, "rb").read()
         except FileNotFoundError:
-            log.error("%s  Attachment '%s' not found in %s",
-                      " "*len(depth), file, dirpath)
-            return
+            # trying to see if there are any suitable files in the att. dir.
+            bestmatch = find_attachment(dirpath,file)
+            if bestmatch == None:
+                log.error("%s  Attachment '%s' not found in %s",
+                          " "*len(depth), file, dirpath)
+                return
+            data = open(dirpath+"/"+bestmatch, "rb").read()
     log.debug("%s  Attachment '%s' found", " "*len(depth), file)
     cte = part["Content-Transfer-Encoding"]
     if cte is None:
@@ -211,6 +215,25 @@ def include_attachment(attach_dir, part, depth):
         log.error("  CTE %r", cte)
         log.error("  CD  %r", part["Content-Disposition"])
     part.set_payload(data)
+
+
+# search the attachment directory and try to match the file name with the closest file
+# need this when the filename extracted from the emlx is written in some unusual encoding
+#   such as ISO-8859-9 and thus doesn't match the unicode-encoded attachment
+# this needs some improvement, like handling when there is an attachment possibly matching
+#   multiple file names
+def find_attachment(dirpath, file):
+    if not os.path.isdir(dirpath):
+        return None
+    bestmatch = None
+    highestscore = 0
+    for x in os.listdir(dirpath):
+        seq=difflib.SequenceMatcher(a=x.lower(), b=file.lower())
+        score = seq.ratio()
+        if score > highestscore:
+            highestscore = score
+            bestmatch = x
+    return bestmatch
 
 
 if __name__ == "__main__":
